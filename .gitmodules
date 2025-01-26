@@ -1,3 +1,6 @@
 [submodule "third_party/libp2p"]
 	path = third_party/libp2p
 	url = git@github.com:libp2p/cpp-libp2p.git
+[submodule "third_party/libgit2"]
+	path = third_party/libgit2
+	url = git@github.com:libgit2/libgit2.git

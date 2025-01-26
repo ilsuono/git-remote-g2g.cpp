@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.21)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
     cmake_policy(SET CMP0144 NEW)
@@ -27,7 +27,30 @@ project(git-remote-g2g VERSION 0.0.1 LANGUAGES C CXX)
 hunter_add_package(libp2p)
 find_package(libp2p CONFIG REQUIRED)
 
+include(ExternalProject)
+ExternalProject_Add(
+    libgit2_PROJECT
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libgit2
+    CMAKE_ARGS
+        -DBUILD_SHARED_LIBS=OFF
+        -DBUILD_TESTS=OFF
+        -DBUILD_CLI=OFF
+        -DCMAKE_INSTALL_BINDIR=<BINARY_DIR>
+        -DCMAKE_INSTALL_LIBDIR=<INSTALL_DIR>/lib
+        -DCMAKE_INSTALL_INCLUDEDIR=<INSTALL_DIR>/include
+    CMAKE_CACHE_ARGS
+        -DUSE_HTTPS:STRING=OFF
+        -DUSE_AUTH_NTLM:STRING=OFF
+        -DUSE_COMPRESSION:STRING=builtin
+)
+ExternalProject_Get_Property(libgit2_PROJECT INSTALL_DIR)
+
 add_executable(main src/main.cpp)
 target_link_libraries(main
     p2p::p2p_multiaddress
 )
+
+file(GLOB SRC_EXAMPLES src/examples/*.c sec/examples/*.h)
+add_executable(lg2 ${SRC_EXAMPLES})
+target_include_directories(lg2 PRIVATE ${INSTALL_DIR}/include)
+target_link_libraries(lg2 ${INSTALL_DIR}/lib/libgit2.a pthread)
