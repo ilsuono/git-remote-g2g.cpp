@@ -4,7 +4,6 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
     cmake_policy(SET CMP0144 NEW)
 endif()
 
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 set(CMAKE_TOOLCHAIN_FILE
     "${CMAKE_SOURCE_DIR}/cmake/cxx20.cmake"
     CACHE
@@ -27,6 +26,12 @@ project(git-remote-g2g VERSION 0.0.1 LANGUAGES C CXX)
 hunter_add_package(libp2p)
 find_package(libp2p CONFIG REQUIRED)
 
+hunter_add_package(libsecp256k1)
+find_package(libsecp256k1 CONFIG REQUIRED)
+
+hunter_add_package(Boost)
+find_package(Boost CONFIG REQUIRED)
+
 include(ExternalProject)
 ExternalProject_Add(
     libgit2_PROJECT
@@ -46,8 +51,37 @@ ExternalProject_Add(
 ExternalProject_Get_Property(libgit2_PROJECT INSTALL_DIR)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main
-    p2p::p2p_multiaddress
+target_link_libraries(main p2p::p2p_multiaddress)
+
+add_executable(libp2p_echo_server
+    src/libp2p_echo_server.cpp
+)
+target_link_libraries(libp2p_echo_server
+    Boost::Boost.DI
+    p2p::p2p_basic_host
+    p2p::p2p_default_network
+    p2p::p2p_peer_repository
+    p2p::p2p_inmem_address_repository
+    p2p::p2p_inmem_key_repository
+    p2p::p2p_inmem_protocol_repository
+    p2p::p2p_protocol_echo
+    p2p::p2p_literals
+)
+
+add_executable(libp2p_echo_client
+    src/libp2p_echo_client.cpp
+)
+
+target_link_libraries(libp2p_echo_client
+    Boost::Boost.DI
+    p2p::p2p_basic_host
+    p2p::p2p_default_network
+    p2p::p2p_peer_repository
+    p2p::p2p_inmem_address_repository
+    p2p::p2p_inmem_key_repository
+    p2p::p2p_inmem_protocol_repository
+    p2p::p2p_protocol_echo
+    p2p::p2p_literals
 )
 
 file(GLOB SRC_EXAMPLES src/examples/*.c sec/examples/*.h)
